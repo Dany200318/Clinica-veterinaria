@@ -1,0 +1,126 @@
+{% extends "base.html" %}
+{% block titulo %}Carnet de {{ paciente.nombre }}{% endblock %}
+{% block contenido %}
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
+    <div class="d-flex align-items-center gap-3">
+        <div class="avatar-paciente">{% if paciente.especie == 'Gato' %}🐱{% elif paciente.especie == 'Perro' %}🐶{% else %}🐾{% endif %}</div>
+        <div>
+            <div class="small text-uppercase text-muted fw-semibold"><i class="bi bi-person-vcard"></i> Carnet del paciente</div>
+            <h1 class="h3 mb-0">{{ paciente.nombre }}</h1>
+            <div class="text-muted">{{ paciente.especie }} · {{ paciente.raza }} · {{ paciente.get_sexo_display }}{% if paciente.edad %} · {{ paciente.edad }}{% endif %}</div>
+        </div>
+    </div>
+    <div class="d-flex flex-wrap gap-2">
+        <a href="{% url 'crear_cita' %}?paciente={{ paciente.pk }}" class="btn btn-primary"><i class="bi bi-calendar-plus"></i> Agendar cita</a>
+        <a href="{% url 'crear_vacuna' paciente.pk %}" class="btn btn-outline-success"><i class="bi bi-shield-plus"></i> Registrar vacuna</a>
+        <a href="{% url 'editar_paciente' paciente.pk %}" class="btn btn-outline-primary"><i class="bi bi-pencil"></i> Editar</a>
+        {% if puede_eliminar %}<a href="{% url 'eliminar_paciente' paciente.pk %}" class="btn btn-outline-danger"><i class="bi bi-trash"></i></a>{% endif %}
+    </div>
+</div>
+
+{% if paciente.tiene_alergias %}
+<div class="alert alert-danger alerta-alergias d-flex align-items-start gap-2">
+    <i class="bi bi-exclamation-octagon-fill fs-4"></i>
+    <div><strong>ALERGIAS CONOCIDAS:</strong><br>{{ paciente.alergias|linebreaksbr }}</div>
+</div>
+{% endif %}
+
+<div class="row g-3">
+    <div class="col-lg-4">
+        <div class="card mb-3">
+            <div class="card-header">Datos del paciente</div>
+            <ul class="list-group list-group-flush small">
+                <li class="list-group-item d-flex justify-content-between"><span class="text-muted">Color</span><span>{{ paciente.color|default:"—" }}</span></li>
+                <li class="list-group-item d-flex justify-content-between"><span class="text-muted">Nacimiento</span><span>{{ paciente.fecha_nacimiento|date:"d/m/Y"|default:"—" }}</span></li>
+                <li class="list-group-item d-flex justify-content-between"><span class="text-muted">Peso</span><span>{% if paciente.peso %}{{ paciente.peso }} lb{% else %}—{% endif %}</span></li>
+                <li class="list-group-item d-flex justify-content-between"><span class="text-muted">Microchip</span><span>{{ paciente.microchip|default:"—" }}</span></li>
+                <li class="list-group-item d-flex justify-content-between"><span class="text-muted">Esterilizado</span><span>{{ paciente.esterilizado|yesno:"Sí,No" }}</span></li>
+                <li class="list-group-item d-flex justify-content-between"><span class="text-muted">Registrado</span><span>{{ paciente.fecha_registro|date:"d/m/Y" }}</span></li>
+                <li class="list-group-item d-flex justify-content-between"><span class="text-muted">Citas totales</span><span>{{ total_citas }} ({{ completadas }} completadas)</span></li>
+            </ul>
+            {% if paciente.observaciones %}
+            <div class="card-body border-top small"><strong>Observaciones:</strong><br>{{ paciente.observaciones|linebreaksbr }}</div>
+            {% endif %}
+        </div>
+        <div class="card">
+            <div class="card-header">Propietario</div>
+            <div class="card-body small">
+                <a href="{% url 'detalle_propietario' paciente.propietario.pk %}" class="fw-semibold">{{ paciente.propietario.nombre }}</a><br>
+                <i class="bi bi-telephone"></i> {{ paciente.propietario.telefono }}<br>
+                <i class="bi bi-envelope"></i> {{ paciente.propietario.email }}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-8">
+        <div class="card mb-3">
+            <div class="card-header"><i class="bi bi-calendar-event me-1"></i> Próximas citas</div>
+            <div class="list-group list-group-flush">
+                {% for c in proximas %}
+                <a href="{% url 'detalle_cita' c.pk %}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                    <span><strong>{{ c.fecha_cita|date:"D d/m/Y" }}</strong> {{ c.hora_inicio|time:"H:i" }} · {{ c.get_tipo_cita_display|default:"Cita" }} · {{ c.veterinario }}</span>
+                    {% include "includes/estado_cita.html" %}
+                </a>
+                {% empty %}
+                <div class="list-group-item text-muted">No tiene citas próximas.</div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="card mb-3">
+            <div class="card-header"><i class="bi bi-clock-history me-1"></i> Historial de citas</div>
+            <div class="table-responsive">
+                <table class="table table-sm align-middle mb-0">
+                    <thead><tr><th>Fecha</th><th>Tipo</th><th>Motivo</th><th>Veterinario</th><th>Notas</th><th>Estado</th></tr></thead>
+                    <tbody>
+                    {% for c in historial %}
+                        <tr>
+                            <td class="text-nowrap"><a href="{% url 'detalle_cita' c.pk %}">{{ c.fecha_cita|date:"d/m/Y" }}</a><br><small class="text-muted">{{ c.hora_inicio|time:"H:i" }}</small></td>
+                            <td>{{ c.get_tipo_cita_display|default:"—" }}</td>
+                            <td>{{ c.motivo|truncatechars:60 }}</td>
+                            <td>{{ c.veterinario }}</td>
+                            <td class="small">{{ c.notas|truncatechars:80|default:"—" }}</td>
+                            <td>{% include "includes/estado_cita.html" %}</td>
+                        </tr>
+                    {% empty %}
+                        <tr><td colspan="6" class="text-muted text-center py-3">Sin historial de citas.</td></tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-shield-check me-1"></i> Vacunas</span>
+                <a href="{% url 'crear_vacuna' paciente.pk %}" class="btn btn-sm btn-outline-success"><i class="bi bi-plus"></i> Registrar</a>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-sm align-middle mb-0">
+                    <thead><tr><th>Vacuna</th><th>Aplicada</th><th>Próxima dosis</th><th>Lote</th><th></th></tr></thead>
+                    <tbody>
+                    {% for v in vacunas %}
+                        <tr>
+                            <td>{{ v.nombre }}</td>
+                            <td>{{ v.fecha_aplicacion|date:"d/m/Y" }}</td>
+                            <td>
+                                {{ v.fecha_proxima|date:"d/m/Y"|default:"—" }}
+                                {% if v.estado == 'vencida' %}<span class="badge text-bg-danger">Vencida</span>
+                                {% elif v.estado == 'proxima' %}<span class="badge text-bg-warning">Próxima</span>{% endif %}
+                            </td>
+                            <td>{{ v.lote|default:"—" }}</td>
+                            <td class="text-end text-nowrap">
+                                <a href="{% url 'editar_vacuna' v.pk %}" class="btn btn-sm btn-outline-primary"><i class="bi bi-pencil"></i></a>
+                                {% if puede_eliminar %}<a href="{% url 'eliminar_vacuna' v.pk %}" class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></a>{% endif %}
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr><td colspan="5" class="text-muted text-center py-3">Sin vacunas registradas.</td></tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

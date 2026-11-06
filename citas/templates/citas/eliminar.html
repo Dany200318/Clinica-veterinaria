@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block titulo %}Eliminar cita{% endblock %}
+{% block contenido %}
+<div class="row justify-content-center">
+    <div class="col-lg-6">
+        <div class="card border-danger">
+            <div class="card-header text-danger"><i class="bi bi-trash me-1"></i> Eliminar cita definitivamente</div>
+            <div class="card-body">
+                <p>¿Eliminar la cita de <strong>{{ cita.paciente.nombre }}</strong> del {{ cita.fecha_cita|date:"d/m/Y" }} a las {{ cita.hora_inicio|time:"H:i" }}?</p>
+                <div class="alert alert-warning py-2 small">Use esta opción solo para registros creados por error. Para el trabajo diario utilice <strong>Cancelar cita</strong>, que conserva el historial y notifica al propietario.</div>
+                <form method="post" class="d-flex gap-2">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger"><i class="bi bi-trash"></i> Sí, eliminar</button>
+                    <a href="{% url 'detalle_cita' cita.pk %}" class="btn btn-secondary">Volver</a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

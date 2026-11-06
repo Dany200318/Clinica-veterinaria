@@ -1,0 +1,12 @@
+{% extends "notificaciones/correos/_base.html" %}
+{% block contenido %}
+<p>Estimado/a <strong>{{ propietario.nombre }}</strong>:</p>
+<p>Le recordamos que se acerca la fecha de la próxima dosis de vacuna de su mascota <strong>{{ paciente.nombre }}</strong>:</p>
+<table cellpadding="6" cellspacing="0" style="border-collapse:collapse;width:100%;background:#f8f9fc;border-radius:6px;margin:12px 0;">
+  <tr><td style="width:40%;color:#666;">Vacuna</td><td><strong>{{ vacuna.nombre }}</strong></td></tr>
+  <tr><td style="color:#666;">Última aplicación</td><td>{{ vacuna.fecha_aplicacion|date:"d/m/Y" }}</td></tr>
+  <tr><td style="color:#666;">Próxima dosis</td><td><strong>{{ vacuna.fecha_proxima|date:"l d \d\e F \d\e Y" }}</strong></td></tr>
+</table>
+<p>Comuníquese con nosotros para agendar la cita de vacunación.</p>
+<p>Saludos cordiales,<br><strong>{{ clinica_nombre }}</strong></p>
+{% endblock %}

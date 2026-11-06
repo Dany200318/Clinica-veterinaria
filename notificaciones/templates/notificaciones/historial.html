@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block titulo %}Historial de notificaciones{% endblock %}
+{% block contenido %}
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
+    <h1 class="h3 mb-0"><i class="bi bi-envelope-check me-2"></i>Historial de notificaciones</h1>
+    <form method="post" action="{% url 'ejecutar_recordatorios' %}">{% csrf_token %}
+        <button class="btn btn-success"><i class="bi bi-play-circle"></i> Enviar recordatorios pendientes</button>
+    </form>
+</div>
+<div class="row g-3 mb-3">
+    <div class="col-md-3"><div class="card text-center"><div class="card-body"><div class="fs-3 fw-bold">{{ total }}</div><small class="text-muted">Correos procesados</small></div></div></div>
+    <div class="col-md-3"><div class="card text-center"><div class="card-body"><div class="fs-3 fw-bold text-success">{{ enviadas }}</div><small class="text-muted">Enviados</small></div></div></div>
+    <div class="col-md-3"><div class="card text-center"><div class="card-body"><div class="fs-3 fw-bold text-danger">{{ errores }}</div><small class="text-muted">Con error</small></div></div></div>
+    <div class="col-md-3"><div class="card text-center"><div class="card-body"><div class="fs-3 fw-bold text-primary">{{ porcentaje }}%</div><small class="text-muted">Entregados sin error (meta 95 %)</small></div></div></div>
+</div>
+<div class="card">
+    <div class="card-body">
+        <form class="row g-2 mb-3" method="get">
+            <div class="col-md-4"><select name="tipo" class="form-select"><option value="">Todos los tipos</option>
+                {% for v, e in tipos %}<option value="{{ v }}" {% if tipo == v %}selected{% endif %}>{{ e }}</option>{% endfor %}</select></div>
+            <div class="col-md-3"><select name="estado" class="form-select"><option value="">Todos los estados</option>
+                <option value="enviado" {% if estado == 'enviado' %}selected{% endif %}>Enviado</option>
+                <option value="error" {% if estado == 'error' %}selected{% endif %}>Error</option></select></div>
+            <div class="col-auto"><button class="btn btn-outline-primary"><i class="bi bi-funnel"></i> Filtrar</button></div>
+        </form>
+        <div class="table-responsive">
+            <table class="table table-sm table-hover align-middle mb-0">
+                <thead><tr><th>Fecha</th><th>Tipo</th><th>Destinatario</th><th>Relacionado con</th><th>Estado</th><th></th></tr></thead>
+                <tbody>
+                {% for n in pagina %}
+                    <tr>
+                        <td class="text-nowrap">{{ n.fecha_envio|date:"d/m/Y H:i" }}</td>
+                        <td>{{ n.get_tipo_display }}</td>
+                        <td>{{ n.destinatario|default:"—" }}</td>
+                        <td>{% if n.cita %}<a href="{% url 'detalle_cita' n.cita.pk %}">Cita de {{ n.cita.paciente.nombre }} ({{ n.cita.fecha_cita|date:"d/m" }})</a>
+                            {% elif n.vacuna %}<a href="{% url 'ficha_paciente' n.vacuna.paciente.pk %}">Vacuna {{ n.vacuna.nombre }} — {{ n.vacuna.paciente.nombre }}</a>{% else %}—{% endif %}</td>
+                        <td>{% if n.estado == 'enviado' %}<span class="badge text-bg-success">Enviado</span>
+                            {% else %}<span class="badge text-bg-danger">Error</span><br><small class="text-danger">{{ n.detalle_error|truncatechars:120 }}</small>{% endif %}</td>
+                        <td class="text-end">{% if n.estado == 'error' %}
+                            <form method="post" action="{% url 'reenviar_notificacion' n.pk %}">{% csrf_token %}<button class="btn btn-sm btn-outline-primary" title="Reintentar"><i class="bi bi-arrow-repeat"></i></button></form>{% endif %}</td>
+                    </tr>
+                {% empty %}
+                    <tr><td colspan="6" class="text-center text-muted py-4">Aún no se han enviado correos.</td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% include "includes/paginacion.html" %}
+    </div>
+</div>
+{% endblock %}

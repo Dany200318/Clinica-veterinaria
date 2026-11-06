@@ -1,0 +1,5 @@
+{% autoescape off %}Este es un correo de prueba enviado el {{ fecha|date:"d/m/Y H:i" }}.
+Si lo está leyendo, la configuración del servidor de correo (SMTP) funciona correctamente.
+
+{{ clinica_nombre }}
+{% endautoescape %}

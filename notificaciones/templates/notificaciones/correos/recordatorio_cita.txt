@@ -1,0 +1,14 @@
+{% autoescape off %}Estimado/a {{ propietario.nombre }}:
+
+Le recordamos que su mascota {{ paciente.nombre }} tiene una cita programada:
+
+- Fecha: {{ cita.fecha_cita|date:"d/m/Y" }}
+- Hora: {{ cita.hora_inicio|time:"H:i" }}
+- Veterinario: {{ cita.veterinario.nombre_completo }}
+- Motivo: {{ cita.motivo }}
+
+Por favor, llegue 10 minutos antes. Si no puede asistir, avísenos para liberar el espacio.
+
+Saludos cordiales,
+{{ clinica_nombre }}{% if clinica_telefono %} - Tel. {{ clinica_telefono }}{% endif %}
+{% endautoescape %}

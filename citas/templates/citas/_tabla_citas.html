@@ -1,0 +1,39 @@
+<div class="table-responsive">
+    <table class="table table-hover align-middle mb-0">
+        <thead><tr>{% if mostrar_fecha %}<th>Fecha</th>{% endif %}<th>Hora</th><th>Paciente</th><th>Propietario</th><th>Veterinario</th><th>Tipo</th><th>Estado</th><th class="text-end">Acciones</th></tr></thead>
+        <tbody>
+        {% for c in citas %}
+            <tr>
+                {% if mostrar_fecha %}<td class="text-nowrap">{{ c.fecha_cita|date:"D d/m" }}</td>{% endif %}
+                <td class="text-nowrap fw-semibold">{{ c.hora_inicio|time:"H:i" }}{% if c.hora_fin %}<small class="text-muted"> – {{ c.hora_fin|time:"H:i" }}</small>{% endif %}</td>
+                <td><a href="{% url 'ficha_paciente' c.paciente_id %}" class="text-decoration-none">{{ c.paciente.nombre }}</a>
+                    {% if c.paciente.tiene_alergias %}<i class="bi bi-exclamation-triangle-fill text-danger" title="Alergias: {{ c.paciente.alergias }}"></i>{% endif %}<br>
+                    <small class="text-muted">{{ c.paciente.especie }}</small></td>
+                <td>{{ c.paciente.propietario.nombre }}<br><small class="text-muted">{{ c.paciente.propietario.telefono }}</small></td>
+                <td>{{ c.veterinario }}</td>
+                <td>{{ c.get_tipo_cita_display|default:"—" }}</td>
+                <td>{% include "includes/estado_cita.html" %}</td>
+                <td class="text-end text-nowrap">
+                    <a href="{% url 'detalle_cita' c.pk %}" class="btn btn-sm btn-outline-secondary" title="Ver"><i class="bi bi-eye"></i></a>
+                    {% if c.es_editable %}
+                    <a href="{% url 'editar_cita' c.pk %}" class="btn btn-sm btn-outline-primary" title="Modificar"><i class="bi bi-pencil"></i></a>
+                    {% if c.estado == 'pendiente' %}
+                    <form method="post" action="{% url 'cambiar_estado_cita' c.pk %}" class="d-inline">{% csrf_token %}
+                        <input type="hidden" name="estado" value="confirmada"><input type="hidden" name="next" value="{{ request.get_full_path }}">
+                        <button class="btn btn-sm btn-outline-success" title="Confirmar"><i class="bi bi-check2"></i></button>
+                    </form>
+                    {% elif c.estado == 'confirmada' %}
+                    <form method="post" action="{% url 'cambiar_estado_cita' c.pk %}" class="d-inline">{% csrf_token %}
+                        <input type="hidden" name="estado" value="completada"><input type="hidden" name="next" value="{{ request.get_full_path }}">
+                        <button class="btn btn-sm btn-outline-success" title="Marcar como completada"><i class="bi bi-check2-all"></i></button>
+                    </form>
+                    {% endif %}
+                    {% endif %}
+                </td>
+            </tr>
+        {% empty %}
+            <tr><td colspan="{% if mostrar_fecha %}8{% else %}7{% endif %}" class="text-center text-muted py-4"><i class="bi bi-calendar-x d-block fs-3 mb-1"></i>{{ vacio|default:"No hay citas." }}</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>

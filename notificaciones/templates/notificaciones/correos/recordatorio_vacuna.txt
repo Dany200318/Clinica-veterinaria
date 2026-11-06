@@ -1,0 +1,13 @@
+{% autoescape off %}Estimado/a {{ propietario.nombre }}:
+
+Se acerca la próxima dosis de vacuna de su mascota {{ paciente.nombre }}:
+
+- Vacuna: {{ vacuna.nombre }}
+- Última aplicación: {{ vacuna.fecha_aplicacion|date:"d/m/Y" }}
+- Próxima dosis: {{ vacuna.fecha_proxima|date:"d/m/Y" }}
+
+Comuníquese con nosotros para agendar la cita de vacunación.
+
+Saludos cordiales,
+{{ clinica_nombre }}{% if clinica_telefono %} - Tel. {{ clinica_telefono }}{% endif %}
+{% endautoescape %}

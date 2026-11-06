@@ -1,0 +1,5 @@
+{% extends "notificaciones/correos/_base.html" %}
+{% block contenido %}
+<p>✅ Este es un <strong>correo de prueba</strong> enviado el {{ fecha|date:"d/m/Y H:i" }}.</p>
+<p>Si lo está leyendo, la configuración del servidor de correo (SMTP) funciona correctamente.</p>
+{% endblock %}

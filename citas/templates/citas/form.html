@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% load crispy_forms_tags static %}
+{% block titulo %}{{ titulo }}{% endblock %}
+{% block contenido %}
+<div class="row justify-content-center">
+    <div class="col-xl-9">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center bg-primary text-white">
+                <span><i class="bi bi-calendar-plus me-1"></i> {{ titulo }}</span>
+                <div class="d-flex gap-2">
+                    <a href="{% url 'dashboard' %}" class="btn btn-sm btn-light"><i class="bi bi-speedometer2"></i> Dashboard</a>
+                    <a href="{% if cita %}{% url 'detalle_cita' cita.pk %}{% else %}{% url 'lista_citas' %}{% endif %}" class="btn btn-sm btn-outline-light"><i class="bi bi-arrow-left"></i> Volver</a>
+                </div>
+            </div>
+            <div class="card-body">
+                {% if form.non_field_errors %}
+                <div class="alert alert-danger">
+                    <i class="bi bi-exclamation-octagon-fill me-1"></i>
+                    {% for e in form.non_field_errors %}{{ e }}<br>{% endfor %}
+                </div>
+                {% endif %}
+                <form method="post" novalidate id="form-cita" data-url-disponibilidad="{% url 'disponibilidad_citas' %}" data-excluir="{{ cita.pk|default:'' }}" data-duracion="{{ CITA_DURACION_MINUTOS }}">
+                    {% csrf_token %}
+                    <div class="row">
+                        <div class="col-md-12">{{ form.paciente|as_crispy_field }}</div>
+                        <div class="col-md-6">{{ form.veterinario|as_crispy_field }}</div>
+                        <div class="col-md-6">{{ form.fecha_cita|as_crispy_field }}</div>
+                        <div class="col-md-6">{{ form.hora_inicio|as_crispy_field }}</div>
+                        <div class="col-md-6">{{ form.hora_fin|as_crispy_field }}</div>
+                        <div class="col-12">
+                            <div id="panel-disponibilidad" class="alert alert-light border small d-none mb-3"></div>
+                        </div>
+                        <div class="col-md-12">{{ form.motivo|as_crispy_field }}</div>
+                        <div class="col-md-6">{{ form.tipo_cita|as_crispy_field }}</div>
+                        <div class="col-md-6">{{ form.estado|as_crispy_field }}</div>
+                        <div class="col-md-12">{{ form.notas|as_crispy_field }}</div>
+                        <div class="col-md-12">{{ form.notificar|as_crispy_field }}</div>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary"><i class="bi bi-save"></i> Guardar cita</button>
+                        <a href="{% if cita %}{% url 'detalle_cita' cita.pk %}{% else %}{% url 'lista_citas' %}{% endif %}" class="btn btn-secondary"><i class="bi bi-x-circle"></i> Cancelar</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script src="{% static 'js/citas.js' %}"></script>
+{% endblock %}

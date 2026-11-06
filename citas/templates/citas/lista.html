@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block titulo %}Citas{% endblock %}
+{% block contenido %}
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
+    <h1 class="h3 mb-0"><i class="bi bi-calendar-check me-2"></i>Citas
+        {% if fecha %}<small class="text-muted fs-6">del {{ pagina.object_list.0.fecha_cita|date:"d/m/Y"|default:fecha }}</small>{% endif %}</h1>
+    <div class="d-flex gap-2">
+        <a href="{% url 'calendario_citas' %}" class="btn btn-outline-primary"><i class="bi bi-calendar3"></i> Calendario</a>
+        <a href="{% url 'crear_cita' %}{% if fecha %}?fecha={{ fecha }}{% endif %}" class="btn btn-primary"><i class="bi bi-calendar-plus"></i> Nueva cita</a>
+    </div>
+</div>
+
+<ul class="nav nav-pills mb-3 gap-1">
+    <li class="nav-item"><a class="nav-link {% if periodo == 'proximas' %}active{% endif %}" href="?periodo=proximas">Próximas</a></li>
+    <li class="nav-item"><a class="nav-link {% if periodo == 'hoy' %}active{% endif %}" href="?periodo=hoy">Hoy</a></li>
+    <li class="nav-item"><a class="nav-link {% if periodo == '7dias' %}active{% endif %}" href="?periodo=7dias">Próximos 7 días</a></li>
+    <li class="nav-item"><a class="nav-link {% if periodo == 'pasadas' %}active{% endif %}" href="?periodo=pasadas">Pasadas</a></li>
+    <li class="nav-item"><a class="nav-link {% if periodo == 'todas' %}active{% endif %}" href="?periodo=todas">Todas</a></li>
+</ul>
+
+<div class="card">
+    <div class="card-body">
+        <form class="row g-2 mb-3" method="get">
+            <input type="hidden" name="periodo" value="{% if periodo == 'fecha' %}todas{% else %}{{ periodo }}{% endif %}">
+            <div class="col-md-3"><input type="search" name="q" value="{{ q }}" class="form-control" placeholder="Paciente, propietario o motivo"></div>
+            <div class="col-md-2"><input type="date" name="fecha" value="{{ fecha }}" class="form-control" title="Fecha exacta"></div>
+            <div class="col-md-2">
+                <select name="estado" class="form-select"><option value="">Todos los estados</option>
+                    {% for v, e in estados %}<option value="{{ v }}" {% if estado == v %}selected{% endif %}>{{ e }}</option>{% endfor %}</select>
+            </div>
+            <div class="col-md-2">
+                <select name="tipo" class="form-select"><option value="">Todos los tipos</option>
+                    {% for v, e in tipos %}<option value="{{ v }}" {% if tipo == v %}selected{% endif %}>{{ e }}</option>{% endfor %}</select>
+            </div>
+            <div class="col-md-2">
+                <select name="veterinario" class="form-select"><option value="">Todos los veterinarios</option>
+                    {% if tiene_vet_propio %}<option value="mias" {% if vet == 'mias' %}selected{% endif %}>— Mis citas —</option>{% endif %}
+                    {% for v in veterinarios %}<option value="{{ v.pk }}" {% if vet == v.pk|stringformat:'s' %}selected{% endif %}>{{ v }}{% if not v.activo %} (inactivo){% endif %}</option>{% endfor %}</select>
+            </div>
+            <div class="col-md-1 d-grid"><button class="btn btn-outline-primary"><i class="bi bi-funnel"></i></button></div>
+        </form>
+        <p class="small text-muted mb-2">{{ pagina.paginator.count }} cita{{ pagina.paginator.count|pluralize }} encontrada{{ pagina.paginator.count|pluralize }}.</p>
+        {% include "citas/_tabla_citas.html" with citas=pagina mostrar_fecha=True vacio="No hay citas con los filtros seleccionados." %}
+        {% include "includes/paginacion.html" %}
+    </div>
+</div>
+{% endblock %}

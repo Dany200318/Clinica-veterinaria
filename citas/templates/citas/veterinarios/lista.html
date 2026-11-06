@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block titulo %}Veterinarios{% endblock %}
+{% block contenido %}
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
+    <h1 class="h3 mb-0"><i class="bi bi-person-badge me-2"></i>Veterinarios</h1>
+    <a href="{% url 'crear_veterinario' %}" class="btn btn-primary"><i class="bi bi-plus-lg"></i> Nuevo veterinario</a>
+</div>
+<div class="card">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead><tr><th>Nombre</th><th>Usuario vinculado</th><th>Citas próximas</th><th>Estado</th><th class="text-end">Acciones</th></tr></thead>
+            <tbody>
+            {% for v in veterinarios %}
+                <tr class="{% if not v.activo %}text-muted{% endif %}">
+                    <td class="fw-semibold">{{ v.nombre_completo }}</td>
+                    <td>{{ v.usuario.username|default:"—" }}</td>
+                    <td><a href="{% url 'lista_citas' %}?veterinario={{ v.pk }}">{{ v.citas_proximas }}</a></td>
+                    <td>{% if v.activo %}<span class="badge text-bg-success">Activo</span>{% else %}<span class="badge text-bg-secondary">Inactivo</span>{% endif %}</td>
+                    <td class="text-end"><a href="{% url 'editar_veterinario' v.pk %}" class="btn btn-sm btn-outline-primary"><i class="bi bi-pencil"></i></a></td>
+                </tr>
+            {% empty %}
+                <tr><td colspan="5" class="text-center text-muted py-4">No hay veterinarios registrados. Registre al menos uno para poder agendar citas.</td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div class="card-footer bg-white small text-muted">Los veterinarios no se eliminan para conservar el historial de citas: desactívelos cuando dejen de atender.</div>
+</div>
+{% endblock %}

@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+{% block titulo %}Cita #{{ cita.pk }}{% endblock %}
+{% block contenido %}
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
+    <h1 class="h3 mb-0"><i class="bi bi-calendar-event me-2"></i>Cita #{{ cita.pk }} {% include "includes/estado_cita.html" with c=cita %}</h1>
+    <div class="d-flex flex-wrap gap-2">
+        {% if cita.es_editable %}<a href="{% url 'editar_cita' cita.pk %}" class="btn btn-primary"><i class="bi bi-pencil"></i> Modificar</a>{% endif %}
+        <a href="{% url 'lista_citas' %}" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Volver</a>
+        {% if puede_eliminar %}<a href="{% url 'eliminar_cita' cita.pk %}" class="btn btn-outline-danger" title="Eliminar definitivamente"><i class="bi bi-trash"></i></a>{% endif %}
+    </div>
+</div>
+
+{% if cita.paciente.tiene_alergias %}
+<div class="alert alert-danger alerta-alergias"><i class="bi bi-exclamation-octagon-fill me-1"></i><strong>Alergias del paciente:</strong> {{ cita.paciente.alergias }}</div>
+{% endif %}
+
+<div class="row g-3">
+    <div class="col-lg-7">
+        <div class="card mb-3">
+            <div class="card-header">Detalle de la cita</div>
+            <ul class="list-group list-group-flush">
+                <li class="list-group-item"><span class="text-muted d-inline-block" style="width:150px">Fecha</span><strong>{{ cita.fecha_cita|date:"l d \d\e F \d\e Y"|capfirst }}</strong></li>
+                <li class="list-group-item"><span class="text-muted d-inline-block" style="width:150px">Horario</span>{{ cita.hora_inicio|time:"H:i" }} – {{ cita.hora_fin_efectiva|time:"H:i" }}{% if not cita.hora_fin %} <small class="text-muted">(duración estimada)</small>{% endif %}</li>
+                <li class="list-group-item"><span class="text-muted d-inline-block" style="width:150px">Veterinario</span>{{ cita.veterinario }}</li>
+                <li class="list-group-item"><span class="text-muted d-inline-block" style="width:150px">Tipo de cita</span>{{ cita.get_tipo_cita_display|default:"—" }}</li>
+                <li class="list-group-item"><span class="text-muted d-inline-block" style="width:150px">Motivo</span>{{ cita.motivo|linebreaksbr }}</li>
+                <li class="list-group-item"><span class="text-muted d-inline-block" style="width:150px">Notas</span>{{ cita.notas|linebreaksbr|default:"—" }}</li>
+                <li class="list-group-item small text-muted">Registrada {{ cita.fecha_creacion|date:"d/m/Y H:i" }}{% if cita.creado_por %} por {{ cita.creado_por.get_full_name|default:cita.creado_por.username }}{% endif %} · Última modificación {{ cita.fecha_actualizacion|date:"d/m/Y H:i" }}</li>
+            </ul>
+        </div>
+        {% if cita.es_editable or cita.estado == 'cancelada' %}
+        <div class="card">
+            <div class="card-header">Cambiar estado</div>
+            <div class="card-body d-flex flex-wrap gap-2">
+                {% if cita.estado == 'pendiente' %}
+                <form method="post" action="{% url 'cambiar_estado_cita' cita.pk %}">{% csrf_token %}<input type="hidden" name="estado" value="confirmada">
+                    <button class="btn btn-outline-primary"><i class="bi bi-check2"></i> Confirmar</button></form>
+                {% endif %}
+                {% if cita.es_editable %}
+                <form method="post" action="{% url 'cambiar_estado_cita' cita.pk %}">{% csrf_token %}<input type="hidden" name="estado" value="completada">
+                    <button class="btn btn-outline-success"><i class="bi bi-check2-all"></i> Marcar completada</button></form>
+                <form method="post" action="{% url 'cambiar_estado_cita' cita.pk %}" onsubmit="return confirm('¿Cancelar esta cita? Se notificará al propietario.');">{% csrf_token %}<input type="hidden" name="estado" value="cancelada">
+                    <button class="btn btn-outline-danger"><i class="bi bi-x-circle"></i> Cancelar cita</button></form>
+                {% endif %}
+                {% if cita.estado == 'cancelada' %}
+                <form method="post" action="{% url 'cambiar_estado_cita' cita.pk %}">{% csrf_token %}<input type="hidden" name="estado" value="pendiente">
+                    <button class="btn btn-outline-warning"><i class="bi bi-arrow-counterclockwise"></i> Reactivar (si el horario sigue libre)</button></form>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+    <div class="col-lg-5">
+        <div class="card mb-3">
+            <div class="card-header">Paciente y propietario</div>
+            <div class="card-body">
+                <a href="{% url 'ficha_paciente' cita.paciente.pk %}" class="fw-semibold fs-5">{{ cita.paciente.nombre }}</a>
+                <div class="text-muted small mb-2">{{ cita.paciente.especie }} · {{ cita.paciente.raza }} · {{ cita.paciente.get_sexo_display }}{% if cita.paciente.edad %} · {{ cita.paciente.edad }}{% endif %}</div>
+                <hr>
+                <a href="{% url 'detalle_propietario' cita.paciente.propietario.pk %}">{{ cita.paciente.propietario.nombre }}</a><br>
+                <i class="bi bi-telephone"></i> {{ cita.paciente.propietario.telefono }}<br>
+                <i class="bi bi-envelope"></i> {{ cita.paciente.propietario.email }}
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-header"><i class="bi bi-envelope me-1"></i> Correos enviados</div>
+            <ul class="list-group list-group-flush small">
+                {% for n in notificaciones %}
+                <li class="list-group-item d-flex justify-content-between">
+                    <span>{{ n.get_tipo_display }}<br><span class="text-muted">{{ n.fecha_envio|date:"d/m/Y H:i" }}</span></span>
+                    {% if n.estado == 'enviado' %}<span class="badge text-bg-success align-self-center">Enviado</span>
+                    {% else %}<span class="badge text-bg-danger align-self-center" title="{{ n.detalle_error }}">Error</span>{% endif %}
+                </li>
+                {% empty %}
+                <li class="list-group-item text-muted">No se han enviado correos para esta cita.</li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}

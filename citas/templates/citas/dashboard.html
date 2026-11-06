@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+{% block titulo %}Dashboard{% endblock %}
+{% block contenido %}
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
+    <div>
+        <h1 class="h3 mb-0">Bienvenido/a, {{ user.first_name|default:user.username }} 👋</h1>
+        <small class="text-muted"><i class="bi bi-calendar3"></i> {{ hoy|date:"l, d \d\e F \d\e Y"|capfirst }}</small>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="{% url 'crear_cita' %}" class="btn btn-primary"><i class="bi bi-calendar-plus"></i> Nueva cita</a>
+        <a href="{% url 'crear_paciente' %}" class="btn btn-success"><i class="bi bi-plus-circle"></i> Nuevo paciente</a>
+    </div>
+</div>
+
+{# Tarjetas principales (RF-18) #}
+<div class="row g-3 mb-3">
+    <div class="col-sm-6 col-xl-3">
+        <div class="card tarjeta-kpi azul"><div class="card-body d-flex justify-content-between">
+            <div><div class="small text-uppercase">Citas hoy</div><div class="valor">{{ total_citas_hoy }}</div><small>{{ completadas_hoy }} completada{{ completadas_hoy|pluralize }}</small></div>
+            <i class="bi bi-calendar-day icono"></i></div></div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+        <div class="card tarjeta-kpi verde"><div class="card-body d-flex justify-content-between">
+            <div><div class="small text-uppercase">Total pacientes</div><div class="valor">{{ total_pacientes }}</div><small>+{{ pacientes_mes }} este mes</small></div>
+            <i class="bi bi-heart-pulse icono"></i></div></div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+        <div class="card tarjeta-kpi amarillo"><div class="card-body d-flex justify-content-between">
+            <div><div class="small text-uppercase">Pendientes</div><div class="valor">{{ citas_pendientes }}</div><small>por confirmar desde hoy</small></div>
+            <i class="bi bi-hourglass-split icono"></i></div></div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+        <div class="card tarjeta-kpi celeste"><div class="card-body d-flex justify-content-between">
+            <div><div class="small text-uppercase">Citas del mes</div><div class="valor">{{ citas_mes }}</div><small>{{ mes_nombre }}</small></div>
+            <i class="bi bi-calendar-month icono"></i></div></div>
+    </div>
+</div>
+
+<div class="row g-3 mb-3">
+    <div class="col-6 col-xl-3"><div class="card mini-stat text-center"><div class="card-body">
+        <i class="bi bi-people text-primary fs-4"></i><div class="valor">{{ total_propietarios }}</div><small class="text-muted">Propietarios registrados</small></div></div></div>
+    <div class="col-6 col-xl-3"><div class="card mini-stat text-center"><div class="card-body">
+        <i class="bi bi-person-badge text-success fs-4"></i><div class="valor">{{ veterinarios_activos }}</div><small class="text-muted">Veterinarios activos</small></div></div></div>
+    <div class="col-6 col-xl-3"><div class="card mini-stat text-center"><div class="card-body">
+        <i class="bi bi-check-circle text-success fs-4"></i><div class="valor">{{ completadas_hoy }}</div><small class="text-muted">Completadas hoy</small></div></div></div>
+    <div class="col-6 col-xl-3"><div class="card mini-stat text-center"><div class="card-body">
+        <i class="bi bi-x-circle text-danger fs-4"></i><div class="valor">{{ canceladas_mes }}</div><small class="text-muted">Canceladas este mes</small></div></div></div>
+</div>
+
+<div class="row g-3">
+    <div class="col-xl-8">
+        <div class="card mb-3">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-calendar-check me-1"></i> Citas programadas hoy</span>
+                <div class="d-flex gap-2">
+                    {% if mi_vet %}
+                        {% if solo_mias %}<a href="?" class="btn btn-sm btn-primary">Solo mis citas ✓</a>
+                        {% else %}<a href="?mias=1" class="btn btn-sm btn-outline-primary">Solo mis citas</a>{% endif %}
+                    {% endif %}
+                    <a href="{% url 'lista_citas' %}?periodo=hoy" class="btn btn-sm btn-outline-secondary">Ver todas</a>
+                </div>
+            </div>
+            {% include "citas/_tabla_citas.html" with citas=citas_hoy mostrar_fecha=False vacio="No hay citas programadas para hoy." %}
+        </div>
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-calendar-week me-1"></i> Próximas citas (7 días)</span>
+                <a href="{% url 'lista_citas' %}?periodo=7dias" class="btn btn-sm btn-outline-secondary">Ver todas</a>
+            </div>
+            {% include "citas/_tabla_citas.html" with citas=proximas mostrar_fecha=True vacio="No hay citas en los próximos 7 días." %}
+        </div>
+    </div>
+    <div class="col-xl-4">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-calendar3 me-1"></i> {{ mes_nombre }}</span>
+                <a href="{% url 'calendario_citas' %}" class="btn btn-sm btn-outline-secondary">Calendario</a>
+            </div>
+            <div class="card-body p-2">
+                <table class="table table-borderless mini-calendario mb-1">
+                    <thead><tr>{% for d in dias_semana %}<th class="text-center small text-muted">{{ d|slice:":1" }}</th>{% endfor %}</tr></thead>
+                    <tbody>
+                    {% for semana in semanas %}
+                        <tr>
+                        {% for dia in semana %}
+                            <td class="{% if dia.fecha == hoy %}hoy{% elif dia.citas %}con-citas{% endif %} {% if not dia.del_mes %}text-muted opacity-50{% endif %}">
+                                {% if dia.del_mes %}
+                                <a href="{% url 'lista_citas' %}?fecha={{ dia.fecha|date:'Y-m-d' }}" title="{{ dia.citas|length }} cita(s)">
+                                    {{ dia.fecha.day }}{% if dia.citas %}<br><span class="badge rounded-pill text-bg-primary" style="font-size:.6rem">{{ dia.citas|length }}</span>{% endif %}
+                                </a>
+                                {% endif %}
+                            </td>
+                        {% endfor %}
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+                <div class="small text-muted px-2"><span class="badge text-bg-warning">&nbsp;</span> Días con citas</div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

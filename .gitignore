@@ -1,0 +1,25 @@
+# Entornos virtuales
+venv/
+env/
+.venv/
+
+# Python
+__pycache__/
+*.py[cod]
+
+# Configuración local y secretos (NUNCA subir a GitHub)
+.env
+
+# Bases de datos locales y respaldos
+*.sqlite3
+respaldos/
+*.sql.gz
+
+# Archivos generados
+staticfiles/
+media/
+*.log
+
+# Editores
+.vscode/
+.idea/

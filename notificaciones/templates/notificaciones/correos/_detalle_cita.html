@@ -1,0 +1,9 @@
+<table cellpadding="6" cellspacing="0" style="border-collapse:collapse;width:100%;background:#f8f9fc;border-radius:6px;margin:12px 0;">
+  <tr><td style="width:40%;color:#666;">Paciente</td><td><strong>{{ paciente.nombre }}</strong> ({{ paciente.especie }})</td></tr>
+  <tr><td style="color:#666;">Fecha</td><td><strong>{{ cita.fecha_cita|date:"l d \d\e F \d\e Y" }}</strong></td></tr>
+  <tr><td style="color:#666;">Hora</td><td><strong>{{ cita.hora_inicio|time:"H:i" }}</strong>{% if cita.hora_fin %} a {{ cita.hora_fin|time:"H:i" }}{% endif %}</td></tr>
+  <tr><td style="color:#666;">Veterinario</td><td>{{ cita.veterinario.nombre_completo }}</td></tr>
+  {% if cita.tipo_cita %}<tr><td style="color:#666;">Tipo de cita</td><td>{{ cita.get_tipo_cita_display }}</td></tr>{% endif %}
+  <tr><td style="color:#666;">Motivo</td><td>{{ cita.motivo }}</td></tr>
+  <tr><td style="color:#666;">Estado</td><td>{{ cita.get_estado_display }}</td></tr>
+</table>

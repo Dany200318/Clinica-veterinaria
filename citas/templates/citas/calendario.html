@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block titulo %}Calendario de citas{% endblock %}
+{% block contenido %}
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
+    <h1 class="h3 mb-0"><i class="bi bi-calendar3 me-2"></i>Calendario de citas</h1>
+    <a href="{% url 'crear_cita' %}" class="btn btn-primary"><i class="bi bi-calendar-plus"></i> Nueva cita</a>
+</div>
+<div class="card">
+    <div class="card-header d-flex flex-wrap justify-content-between align-items-center gap-2">
+        <div class="btn-group">
+            <a class="btn btn-outline-secondary" href="?mes={{ mes_anterior }}{% if vet_id %}&veterinario={{ vet_id }}{% endif %}"><i class="bi bi-chevron-left"></i></a>
+            <a class="btn btn-outline-secondary" href="?{% if vet_id %}veterinario={{ vet_id }}{% endif %}">Hoy</a>
+            <a class="btn btn-outline-secondary" href="?mes={{ mes_siguiente }}{% if vet_id %}&veterinario={{ vet_id }}{% endif %}"><i class="bi bi-chevron-right"></i></a>
+        </div>
+        <h2 class="h5 mb-0">{{ mes_nombre }} <small class="text-muted">({{ total_mes }} cita{{ total_mes|pluralize }})</small></h2>
+        <form method="get" class="d-flex gap-2">
+            <input type="hidden" name="mes" value="{{ mes_actual }}">
+            <select name="veterinario" class="form-select form-select-sm" onchange="this.form.submit()">
+                <option value="">Todos los veterinarios</option>
+                {% for v in veterinarios %}<option value="{{ v.pk }}" {% if vet_id == v.pk|stringformat:'s' %}selected{% endif %}>{{ v }}</option>{% endfor %}
+            </select>
+        </form>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-bordered calendario mb-0">
+            <thead><tr>{% for d in dias_semana %}<th>{{ d }}</th>{% endfor %}</tr></thead>
+            <tbody>
+            {% for semana in semanas %}
+                <tr>
+                {% for dia in semana %}
+                    <td class="{% if not dia.del_mes %}fuera-mes{% endif %} {% if dia.fecha == hoy %}hoy{% endif %}">
+                        <div class="d-flex justify-content-between">
+                            <a href="{% url 'lista_citas' %}?fecha={{ dia.fecha|date:'Y-m-d' }}" class="numero-dia text-decoration-none text-reset">{{ dia.fecha.day }}</a>
+                            {% if dia.fecha >= hoy %}<a href="{% url 'crear_cita' %}?fecha={{ dia.fecha|date:'Y-m-d' }}{% if vet_id %}&veterinario={{ vet_id }}{% endif %}" class="text-muted small" title="Agendar"><i class="bi bi-plus-circle"></i></a>{% endif %}
+                        </div>
+                        {% for c in dia.citas|slice:":3" %}
+                            <a href="{% url 'detalle_cita' c.pk %}" class="evento bg-{{ c.color_estado }}" title="{{ c.hora_inicio|time:'H:i' }} {{ c.paciente.nombre }} — {{ c.veterinario }} ({{ c.get_estado_display }})">
+                                {{ c.hora_inicio|time:"H:i" }} {{ c.paciente.nombre }}
+                            </a>
+                        {% endfor %}
+                        {% if dia.citas|length > 3 %}
+                            <a href="{% url 'lista_citas' %}?fecha={{ dia.fecha|date:'Y-m-d' }}" class="small">+{{ dia.citas|length|add:"-3" }} más</a>
+                        {% endif %}
+                    </td>
+                {% endfor %}
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div class="card-footer bg-white small">
+        <span class="badge text-bg-warning">Pendiente</span>
+        <span class="badge text-bg-primary">Confirmada</span>
+        <span class="badge text-bg-success">Completada</span>
+        <span class="text-muted ms-2">Las citas canceladas no se muestran porque liberan el horario.</span>
+    </div>
+</div>
+{% endblock %}

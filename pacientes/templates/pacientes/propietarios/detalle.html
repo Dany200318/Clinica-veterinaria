@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block titulo %}{{ propietario.nombre }}{% endblock %}
+{% block contenido %}
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
+    <h1 class="h3 mb-0"><i class="bi bi-person-vcard me-2"></i>{{ propietario.nombre }}</h1>
+    <div class="d-flex gap-2">
+        <a href="{% url 'editar_propietario' propietario.pk %}" class="btn btn-outline-primary"><i class="bi bi-pencil"></i> Editar</a>
+        <a href="{% url 'crear_paciente' %}?propietario={{ propietario.pk }}" class="btn btn-success"><i class="bi bi-plus-circle"></i> Agregar mascota</a>
+        {% if puede_eliminar %}<a href="{% url 'eliminar_propietario' propietario.pk %}" class="btn btn-outline-danger"><i class="bi bi-trash"></i></a>{% endif %}
+    </div>
+</div>
+<div class="row g-3">
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-header">Datos de contacto</div>
+            <ul class="list-group list-group-flush">
+                <li class="list-group-item"><i class="bi bi-telephone me-2 text-primary"></i>{{ propietario.telefono }}</li>
+                <li class="list-group-item"><i class="bi bi-envelope me-2 text-primary"></i><a href="mailto:{{ propietario.email }}">{{ propietario.email }}</a></li>
+                <li class="list-group-item"><i class="bi bi-person-badge me-2 text-primary"></i>DPI: {{ propietario.dpi|default:"No registrado" }}</li>
+                <li class="list-group-item"><i class="bi bi-geo-alt me-2 text-primary"></i>{{ propietario.direccion|default:"Sin dirección" }}{% if propietario.zona %} — {{ propietario.zona }}{% endif %}</li>
+            </ul>
+        </div>
+    </div>
+    <div class="col-lg-8">
+        <div class="card mb-3">
+            <div class="card-header">Mascotas ({{ pacientes|length }})</div>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead><tr><th>Nombre</th><th>Especie</th><th>Raza</th><th>Sexo</th><th>Edad</th><th>Citas</th><th></th></tr></thead>
+                    <tbody>
+                    {% for p in pacientes %}
+                        <tr>
+                            <td><a href="{% url 'ficha_paciente' p.pk %}" class="fw-semibold text-decoration-none">{{ p.nombre }}</a>
+                                {% if p.tiene_alergias %}<span class="badge text-bg-danger" title="{{ p.alergias }}"><i class="bi bi-exclamation-triangle"></i></span>{% endif %}</td>
+                            <td>{{ p.especie }}</td><td>{{ p.raza }}</td><td>{{ p.get_sexo_display }}</td>
+                            <td>{{ p.edad|default:"—" }}</td><td>{{ p.num_citas }}</td>
+                            <td class="text-end"><a href="{% url 'crear_cita' %}?paciente={{ p.pk }}" class="btn btn-sm btn-outline-primary"><i class="bi bi-calendar-plus"></i> Cita</a></td>
+                        </tr>
+                    {% empty %}
+                        <tr><td colspan="7" class="text-muted text-center py-3">Aún no tiene mascotas registradas.</td></tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-header">Últimas citas</div>
+            <div class="table-responsive">
+                <table class="table table-sm align-middle mb-0">
+                    <thead><tr><th>Fecha</th><th>Hora</th><th>Paciente</th><th>Veterinario</th><th>Estado</th></tr></thead>
+                    <tbody>
+                    {% for c in citas %}
+                        <tr>
+                            <td><a href="{% url 'detalle_cita' c.pk %}">{{ c.fecha_cita|date:"d/m/Y" }}</a></td>
+                            <td>{{ c.hora_inicio|time:"H:i" }}</td><td>{{ c.paciente.nombre }}</td><td>{{ c.veterinario }}</td>
+                            <td>{% include "includes/estado_cita.html" %}</td>
+                        </tr>
+                    {% empty %}
+                        <tr><td colspan="5" class="text-muted text-center py-3">Sin citas registradas.</td></tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

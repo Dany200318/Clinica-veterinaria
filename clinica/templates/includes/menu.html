@@ -1,0 +1,29 @@
+{% with url=request.resolver_match.url_name path=request.path %}
+<a href="{% url 'dashboard' %}" class="marca mb-3 px-2">
+    <i class="bi bi-heart-pulse-fill me-1"></i> {{ CLINICA_NOMBRE }}
+    <small>Sistema de gestión veterinaria</small>
+</a>
+<ul class="nav flex-column">
+    <li><a class="nav-link {% if url == 'dashboard' %}active{% endif %}" href="{% url 'dashboard' %}"><i class="bi bi-speedometer2"></i> Dashboard</a></li>
+    <li><a class="nav-link {% if '/citas/' in path and url != 'dashboard' and '/veterinarios/' not in path %}active{% endif %}" href="{% url 'lista_citas' %}"><i class="bi bi-calendar-check"></i> Citas</a></li>
+    <li><a class="nav-link {% if url == 'calendario_citas' %}active{% endif %} ps-5 small" href="{% url 'calendario_citas' %}">Calendario</a></li>
+    <li><a class="nav-link {% if path|slice:':11' == '/pacientes/' and '/propietarios/' not in path and url != 'buscar' %}active{% endif %}" href="{% url 'lista_pacientes' %}"><i class="bi bi-heart"></i> Pacientes</a></li>
+    <li><a class="nav-link {% if '/propietarios/' in path %}active{% endif %}" href="{% url 'lista_propietarios' %}"><i class="bi bi-people"></i> Propietarios</a></li>
+    {% if puede_reportes %}
+    <li><a class="nav-link {% if '/reportes/' in path %}active{% endif %}" href="{% url 'reportes' %}"><i class="bi bi-bar-chart-line"></i> Reportes</a></li>
+    {% endif %}
+</ul>
+{% if puede_admin %}
+<div class="titulo-seccion">Administración</div>
+<ul class="nav flex-column">
+    <li><a class="nav-link {% if '/usuarios/' in path %}active{% endif %}" href="{% url 'lista_usuarios' %}"><i class="bi bi-person-gear"></i> Usuarios y roles</a></li>
+    <li><a class="nav-link {% if '/veterinarios/' in path %}active{% endif %}" href="{% url 'lista_veterinarios' %}"><i class="bi bi-person-badge"></i> Veterinarios</a></li>
+    <li><a class="nav-link {% if url == 'configuracion_correo' %}active{% endif %}" href="{% url 'configuracion_correo' %}"><i class="bi bi-envelope-gear"></i> Correo (SMTP)</a></li>
+    <li><a class="nav-link {% if url == 'historial_notificaciones' %}active{% endif %}" href="{% url 'historial_notificaciones' %}"><i class="bi bi-envelope-check"></i> Notificaciones</a></li>
+    <li><a class="nav-link" href="{% url 'admin:index' %}"><i class="bi bi-gear"></i> Panel Django</a></li>
+</ul>
+{% endif %}
+<div class="mt-auto small opacity-75 px-2 pt-3">
+    <i class="bi bi-calendar3"></i> {% now "d/m/Y" %}
+</div>
+{% endwith %}

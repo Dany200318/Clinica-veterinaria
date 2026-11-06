@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% load crispy_forms_tags %}
+{% block titulo %}{{ titulo }}{% endblock %}
+{% block contenido %}
+<div class="row justify-content-center">
+    <div class="col-xl-9">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-heart me-1"></i> {{ titulo }}</span>
+                <a href="{% if paciente %}{% url 'ficha_paciente' paciente.pk %}{% else %}{% url 'lista_pacientes' %}{% endif %}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-arrow-left"></i> Volver</a>
+            </div>
+            <div class="card-body">
+                <p class="text-muted small">Los campos marcados con <span class="text-danger">*</span> son obligatorios.
+                    ¿El propietario no existe? <a href="{% url 'crear_propietario' %}">Regístrelo primero</a>.</p>
+                <form method="post" novalidate>
+                    {% csrf_token %}
+                    <div class="row">
+                        <div class="col-md-12">{{ form.propietario|as_crispy_field }}</div>
+                        <div class="col-md-4">{{ form.nombre|as_crispy_field }}</div>
+                        <div class="col-md-4">{{ form.especie|as_crispy_field }}</div>
+                        <div class="col-md-4">{{ form.raza|as_crispy_field }}</div>
+                        <div class="col-md-4">{{ form.sexo|as_crispy_field }}</div>
+                        <div class="col-md-4">{{ form.color|as_crispy_field }}</div>
+                        <div class="col-md-4">{{ form.fecha_nacimiento|as_crispy_field }}</div>
+                        <div class="col-md-4">{{ form.peso|as_crispy_field }}</div>
+                        <div class="col-md-4">{{ form.microchip|as_crispy_field }}</div>
+                        <div class="col-md-4 d-flex align-items-center pt-3">{{ form.esterilizado|as_crispy_field }}</div>
+                        <div class="col-md-12">
+                            <div class="border border-danger-subtle rounded p-2 mb-3 bg-danger-subtle bg-opacity-25">
+                                {{ form.alergias|as_crispy_field }}
+                            </div>
+                        </div>
+                        <div class="col-md-12">{{ form.observaciones|as_crispy_field }}</div>
+                    </div>
+                    <div class="d-flex flex-wrap gap-2">
+                        <button type="submit" class="btn btn-primary"><i class="bi bi-save"></i> Guardar</button>
+                        {% if not paciente %}
+                        <button type="submit" name="guardar_y_cita" class="btn btn-success"><i class="bi bi-calendar-plus"></i> Guardar y agendar cita</button>
+                        {% endif %}
+                        <a href="{% url 'lista_pacientes' %}" class="btn btn-secondary"><i class="bi bi-x-circle"></i> Cancelar</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,16 @@
+{% extends "notificaciones/correos/_base.html" %}
+{% block contenido %}
+<p>Estimado/a <strong>{{ propietario.nombre }}</strong>:</p>
+{% if tipo == "confirmacion" %}
+<p>Le confirmamos que se ha <strong>agendado una cita</strong> para su mascota <strong>{{ paciente.nombre }}</strong>.</p>
+{% elif tipo == "modificacion" %}
+<p>Le informamos que la cita de su mascota <strong>{{ paciente.nombre }}</strong> fue <strong>modificada</strong>. Estos son los datos actualizados:</p>
+{% elif tipo == "cancelacion" %}
+<p>Le informamos que la cita de su mascota <strong>{{ paciente.nombre }}</strong> fue <strong style="color:#c0392b;">cancelada</strong>. Si desea reprogramarla, comuníquese con nosotros.</p>
+{% endif %}
+{% include "notificaciones/correos/_detalle_cita.html" %}
+{% if tipo != "cancelacion" %}
+<p>Le recomendamos llegar 10 minutos antes. Si necesita reprogramar o cancelar, contáctenos con anticipación.</p>
+{% endif %}
+<p>Saludos cordiales,<br><strong>{{ clinica_nombre }}</strong></p>
+{% endblock %}

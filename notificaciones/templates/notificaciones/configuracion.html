@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+{% load crispy_forms_tags %}
+{% block titulo %}Configuración de correo{% endblock %}
+{% block contenido %}
+<h1 class="h3 mb-3"><i class="bi bi-envelope-gear me-2"></i>Configuración del servidor de correo (SMTP)</h1>
+<div class="row g-3">
+    <div class="col-lg-7">
+        <div class="card">
+            <div class="card-header">Parámetros SMTP</div>
+            <div class="card-body">
+                {% if estado.modo == 'consola' %}
+                <div class="alert alert-warning">
+                    <strong><i class="bi bi-exclamation-triangle-fill"></i> Modo prueba activo:</strong> los correos
+                    <strong>NO se envían</strong>, solo se muestran en la terminal. Complete los pasos de abajo para enviarlos de verdad.
+                </div>
+                {% elif estado.modo == 'sin_configurar' %}
+                <div class="alert alert-danger">
+                    <strong><i class="bi bi-x-octagon-fill"></i> Correo sin configurar:</strong> falta el correo o la contraseña de aplicación.
+                </div>
+                {% else %}
+                <div class="alert alert-success">
+                    <strong><i class="bi bi-check-circle-fill"></i> Envío activo</strong> desde <strong>{{ estado.cuenta }}</strong>
+                    ({% if estado.modo == 'pantalla' %}configuración de esta pantalla{% else %}archivo .env{% endif %}).
+                </div>
+                {% endif %}
+                <details class="mb-3" {% if estado.modo != 'pantalla' and estado.modo != 'env' %}open{% endif %}>
+                    <summary class="fw-semibold">¿Cómo configurar Gmail? (paso a paso)</summary>
+                    <ol class="small mt-2 mb-0">
+                        <li>Use una cuenta de <strong>Gmail</strong> para la clínica (las cuentas institucionales como @miumg.edu.gt
+                            normalmente no permiten contraseñas de aplicación).</li>
+                        <li>En esa cuenta active la <strong>Verificación en dos pasos</strong>:
+                            <a href="https://myaccount.google.com/security" target="_blank" rel="noopener">myaccount.google.com/security</a>.</li>
+                        <li>Cree una <strong>contraseña de aplicación</strong> en
+                            <a href="https://myaccount.google.com/apppasswords" target="_blank" rel="noopener">myaccount.google.com/apppasswords</a>
+                            (nombre: «Sistema veterinaria»). Google mostrará 16 letras.</li>
+                        <li>Abajo marque <strong>Usar esta configuración</strong>, escriba el correo de Gmail en
+                            <em>Usuario / correo</em>, pegue las 16 letras en <em>Contraseña de aplicación</em> y pulse <strong>Guardar</strong>.</li>
+                        <li>Escriba su correo en <em>Probar envío</em> (puede ser @miumg.edu.gt) y pulse <strong>Enviar correo de prueba</strong>.</li>
+                    </ol>
+                </details>
+                <form method="post" novalidate>
+                    {% csrf_token %}
+                    <div class="row">
+                        <div class="col-12">{{ form.usar_esta_configuracion|as_crispy_field }}</div>
+                        <div class="col-md-8">{{ form.servidor|as_crispy_field }}</div>
+                        <div class="col-md-4">{{ form.puerto|as_crispy_field }}</div>
+                        <div class="col-md-6">{{ form.usar_tls|as_crispy_field }}</div>
+                        <div class="col-md-6">{{ form.usar_ssl|as_crispy_field }}</div>
+                        <div class="col-md-6">{{ form.usuario|as_crispy_field }}</div>
+                        <div class="col-md-6">{{ form.contrasena|as_crispy_field }}</div>
+                        <div class="col-12">{{ form.remitente|as_crispy_field }}</div>
+                        <div class="col-12"><hr><h6>Recordatorios automáticos</h6></div>
+                        <div class="col-md-6">{{ form.dias_recordatorio_cita|as_crispy_field }}</div>
+                        <div class="col-md-6">{{ form.dias_recordatorio_vacuna|as_crispy_field }}</div>
+                    </div>
+                    {{ form.non_field_errors }}
+                    <button type="submit" name="guardar" class="btn btn-primary"><i class="bi bi-save"></i> Guardar configuración</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-5">
+        <div class="card mb-3">
+            <div class="card-header">Probar envío</div>
+            <div class="card-body">
+                <form method="post" novalidate>
+                    {% csrf_token %}
+                    {{ form_prueba|crispy }}
+                    <button type="submit" name="probar" class="btn btn-outline-primary"><i class="bi bi-send"></i> Enviar correo de prueba</button>
+                </form>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-header">Recordatorios programados</div>
+            <div class="card-body small">
+                <p>Se envían a los propietarios con citas <strong>pendientes o confirmadas</strong> dentro de los días
+                indicados y con vacunas próximas a vencer. Cada recordatorio se envía <strong>una sola vez</strong>.</p>
+                <p class="text-muted">Para que salgan solos cada día, programe <code>scripts\enviar_recordatorios.bat</code>
+                en el Programador de tareas de Windows (ver README).</p>
+                <form method="post" action="{% url 'ejecutar_recordatorios' %}">{% csrf_token %}
+                    <button class="btn btn-sm btn-success"><i class="bi bi-play-circle"></i> Ejecutar recordatorios ahora</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

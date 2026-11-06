@@ -1,0 +1,8 @@
+{% extends "notificaciones/correos/_base.html" %}
+{% block contenido %}
+<p>Estimado/a <strong>{{ propietario.nombre }}</strong>:</p>
+<p>Le recordamos que su mascota <strong>{{ paciente.nombre }}</strong> tiene una cita programada en nuestra clínica:</p>
+{% include "notificaciones/correos/_detalle_cita.html" %}
+<p>Por favor, llegue 10 minutos antes de la hora programada. Si no puede asistir, avísenos para liberar el espacio.</p>
+<p>Saludos cordiales,<br><strong>{{ clinica_nombre }}</strong></p>
+{% endblock %}

@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block titulo %}Búsqueda{% endblock %}
+{% block contenido %}
+<h1 class="h3 mb-3"><i class="bi bi-search me-2"></i>Resultados de búsqueda{% if q %}: «{{ q }}»{% endif %}</h1>
+{% if not q %}
+    <div class="alert alert-info">Escriba un nombre, teléfono, DPI, correo, raza o microchip en el buscador superior.</div>
+{% else %}
+<div class="row g-3">
+    <div class="col-lg-6">
+        <div class="card h-100">
+            <div class="card-header"><i class="bi bi-people me-1"></i> Propietarios ({{ propietarios|length }})</div>
+            <div class="list-group list-group-flush">
+                {% for p in propietarios %}
+                <a href="{% url 'detalle_propietario' p.pk %}" class="list-group-item list-group-item-action">
+                    <strong>{{ p.nombre }}</strong>
+                    <span class="badge text-bg-light float-end">{{ p.num_pacientes }} paciente{{ p.num_pacientes|pluralize }}</span><br>
+                    <small class="text-muted"><i class="bi bi-telephone"></i> {{ p.telefono }} · <i class="bi bi-envelope"></i> {{ p.email }}{% if p.dpi %} · DPI {{ p.dpi }}{% endif %}</small>
+                </a>
+                {% empty %}
+                <div class="list-group-item text-muted">Sin coincidencias.</div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="card h-100">
+            <div class="card-header"><i class="bi bi-heart me-1"></i> Pacientes ({{ pacientes|length }})</div>
+            <div class="list-group list-group-flush">
+                {% for p in pacientes %}
+                <a href="{% url 'ficha_paciente' p.pk %}" class="list-group-item list-group-item-action">
+                    <strong>{{ p.nombre }}</strong> <span class="text-muted">· {{ p.especie }} · {{ p.raza }}</span>
+                    {% if p.tiene_alergias %}<span class="badge text-bg-danger float-end"><i class="bi bi-exclamation-triangle"></i> Alergias</span>{% endif %}<br>
+                    <small class="text-muted">Propietario: {{ p.propietario.nombre }} · {{ p.propietario.telefono }}</small>
+                </a>
+                {% empty %}
+                <div class="list-group-item text-muted">Sin coincidencias.</div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

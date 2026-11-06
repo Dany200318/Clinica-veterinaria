@@ -1,0 +1,13 @@
+{% autoescape off %}Estimado/a {{ propietario.nombre }}:
+
+{% if tipo == "confirmacion" %}Le confirmamos que se ha agendado una cita para su mascota {{ paciente.nombre }}.{% elif tipo == "modificacion" %}Le informamos que la cita de su mascota {{ paciente.nombre }} fue modificada. Datos actualizados:{% elif tipo == "cancelacion" %}Le informamos que la cita de su mascota {{ paciente.nombre }} fue CANCELADA. Si desea reprogramarla, comuníquese con nosotros.{% endif %}
+
+- Fecha: {{ cita.fecha_cita|date:"d/m/Y" }}
+- Hora: {{ cita.hora_inicio|time:"H:i" }}{% if cita.hora_fin %} a {{ cita.hora_fin|time:"H:i" }}{% endif %}
+- Veterinario: {{ cita.veterinario.nombre_completo }}
+- Motivo: {{ cita.motivo }}
+- Estado: {{ cita.get_estado_display }}
+
+Saludos cordiales,
+{{ clinica_nombre }}{% if clinica_telefono %} - Tel. {{ clinica_telefono }}{% endif %}
+{% endautoescape %}
